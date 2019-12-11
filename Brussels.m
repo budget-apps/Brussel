@@ -5,15 +5,17 @@ printf("****       ******        **        **      **********   **********      
 playorleave = input("Do you want to play game press Y/N (Yes/NO) ? ","s");
 
 if(playorleave == 'Y')
-  disp("\n<<<<<<<<<<<<Welcome to the Brussel Game>>>>>>>>>>>>\n")
+  disp("\n<<<<<<<<<<<<Welcome to the Sprouts Game>>>>>>>>>>>>\n")
 else
   disp("\nGood Bye\n")
+  exit;
 endif
 
 
-x = input("Enter the number of Initial brussels Count?")
+x = input("Enter the number of Initial Points?")
 initialMatrix = zeros(x)
 i=1;
+
 
 #function check whether there are any ways to play
 function ability = hasLegalMove(matrix)
@@ -21,12 +23,12 @@ function ability = hasLegalMove(matrix)
   ability=false;
   #get number of Rows in Metrix
   numberofRows=rows(matrix);
-  
   possibleCount=0;
-  
   for i = 1:rows(matrix)
     x=sum(matrix(i,:));
-    if(x<4)
+    if(x<2)
+      possibleCount=2;
+    elseif(x<3)
       possibleCount=possibleCount+1;
     endif
     if(possibleCount>=2)
@@ -52,8 +54,7 @@ if(row1==row2)
           #change the values in matrix
           getMoveMatrix(row1,lengthofMetrix+1)=2;
           getMoveMatrix(lengthofMetrix+1,row1)=2;
-      else
-          disp("oops wrong move");       
+     
       endif
 else
       #2nd condition draw edge vetex to onother vertex
@@ -71,8 +72,6 @@ else
           getMoveMatrix(lengthofMetrix+1,row1)=1;
           getMoveMatrix(row2,lengthofMetrix+1)=1;
           getMoveMatrix(lengthofMetrix+1,row2)=1;
-       else
-            disp("OOOps wrong move");
        endif
 endif  
 endfunction
@@ -83,7 +82,7 @@ function displayGame(initialMatrix)
   for i = 1:rows(initialMatrix)
     fprintf('%d  ', initialMatrix(i,:));
     fprintf("--------->");
-    disp(i);
+    disp(char(64+i));
   endfor
   printf("-----------------------------------\n\n")
 endfunction
@@ -103,26 +102,116 @@ function hasCross=hasCrossEdges(matrix)
   endif
 endfunction
   
+function nextcomputerMove=nextMove(Matrix)
+  numberofRows=rows(Matrix);
+  nextcomputerMove=[];
+  possibleCount=0;
+  
+  for i = 1:numberofRows
+    x=sum(Matrix(i,:));
+    if(x<2)
+      possibleCount=2;
+      nextcomputerMove(1)=i;
+      nextcomputerMove(2)=i;
+    elseif(x<3)
+      possibleCount=possibleCount+1;
+      nextcomputerMove(possibleCount)=i;
+    endif
+    if(possibleCount>=2)
+      return;
+    endif
+  endfor
+endfunction
+
+function desicion(desition,initialMatrix)
+  
+    if(hasLegalMove(initialMatrix)==false)
+      printf("<<<<<<<no more moves left you are the %s >>>>>>>",desition)
+    endif
+    
+endfunction
+
+function valid = validmove(row1,row2,initialMatrix)
+  valid=false;
+ if(row1==row2)
+      if(sum(initialMatrix(row1,:))<2 && sum(initialMatrix(row2,:))<2)
+      valid=true;
+      endif
+ else
+      if(sum(initialMatrix(row1,:))<3 && sum(initialMatrix(row2,:))<3)
+      valid=true
+      endif
+ endif
+endfunction
 
   
-  
-  
-while(hasLegalMove(initialMatrix))
-  global initialMatrix;
-  if(hasCrossEdges(initialMatrix)==false)
-    disp("-----------")
-    fprintf("move number %d\n",i)
-    a=input("Enter the brusser number to move := ")
-    b=input("Enter the brusser number to move := ")
-    initialMatrix =getMove(a,b,initialMatrix);
-    displayGame(initialMatrix);
-    i=i+1;
-  endif
-endwhile
 
-if(hasLegalMove(initialMatrix)==false)
-  disp("no more moves left you loose")
+result=input("Do you wan't to play First (Y/N)","s")
+if(result =='Y') 
+    global initialMatrix;
+    while(hasLegalMove(initialMatrix))
+      if(hasCrossEdges(initialMatrix)==false)
+        disp("-----------")
+        fprintf("move number %d\n",i)
+        move=input("Enter the Your Move := ","s");
+        Upper = toupper(move);
+        a=toascii(Upper(1)-64);
+        b=toascii(Upper(2)-64);
+          if validmove(a,b,initialMatrix)
+            initialMatrix =getMove(a,b,initialMatrix);
+            displayGame(initialMatrix);
+            desicion("Winner",initialMatrix)
+            i=i+1;
+            if(hasLegalMove(initialMatrix) && hasCrossEdges(initialMatrix)==false )
+              computerMove=nextMove(initialMatrix);
+              initialMatrix =getMove(computerMove(1),computerMove(2),initialMatrix);
+              disp("-------Computer Move--------")
+              displayGame(initialMatrix);
+              desicion("Loose",initialMatrix)
+              i=i+1;
+            endif
+           else
+            disp("OOps Wrong Move");
+           endif
+      endif
+    endwhile
+else
+    valid=true;
+    global initialMatrix;
+    while(hasLegalMove(initialMatrix))
+      global valid;
+      if(hasCrossEdges(initialMatrix)==false)
+        if(valid)
+        computerMove=nextMove(initialMatrix);
+        initialMatrix =getMove(computerMove(1),computerMove(2),initialMatrix);
+        disp("-------Computer Move--------")
+        displayGame(initialMatrix);
+        desicion("Loose",initialMatrix)
+        i=i+1;
+        endif        
+          if(hasLegalMove(initialMatrix) && hasCrossEdges(initialMatrix)==false )
+            disp("-----------")
+            fprintf("move number %d\n",i)
+            move=input("Enter the Your Move := ","s");
+            Upper = toupper(move);
+            a=toascii(Upper(1)-64);
+            b=toascii(Upper(2)-64);
+            if validmove(a,b,initialMatrix)
+              initialMatrix =getMove(a,b,initialMatrix);
+              displayGame(initialMatrix);
+              desicion("Win",initialMatrix)
+              valid=true
+              i=i+1;
+            else
+            disp("OOps Wrong Move");
+            valid=false
+            endif
+          endif
+      endif
+    endwhile
 endif
+
+
   
   
 
