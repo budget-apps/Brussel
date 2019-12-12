@@ -13,7 +13,8 @@ endif
 
 
 x = input("Enter the number of Initial Points?")
-initialMatrix = zeros(x)
+initialMatrix = zeros(x);
+displayGame(initialMatrix);
 i=1;
 
 
@@ -149,7 +150,7 @@ endfunction
   
 
 result=input("Do you wan't to play First (Y/N)","s");
-if(result =='Y') 
+if(result == 'Y') 
     global initialMatrix;
     while(hasLegalMove(initialMatrix))
       if(hasCrossEdges(initialMatrix)==false)
@@ -177,7 +178,7 @@ if(result =='Y')
            endif
       endif
     endwhile
-elseif(result !='Y')
+elseif(result != 'Y')
           valid=true;
           global initialMatrix;
           while(hasLegalMove(initialMatrix))
