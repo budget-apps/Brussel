@@ -93,7 +93,7 @@ endfunction
 
 function hasCross=hasCrossEdges(matrix)
   #get the number of Edges
-  numberofEdges=sum(sum(matrix))/2;
+  numberofEdges=sum(sum(matrix))/2;getProperty
   #get the number of Vertex
   numberofVetex=rows(matrix);
   if((3*numberofVetex-6) <numberofEdges)
