@@ -1,30 +1,4 @@
 function varargout = untitled(varargin)
-% UNTITLED MATLAB code for untitled.fig
-%      UNTITLED, by itself, creates a new UNTITLED or raises the existing
-%      singleton*.
-%
-%      H = UNTITLED returns the handle to a new UNTITLED or the handle to
-%      the existing singleton*.
-%
-%      UNTITLED('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in UNTITLED.M with the given input arguments.
-%
-%      UNTITLED('Property','Value',...) creates a new UNTITLED or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before untitled_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to untitled_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
-
-% Edit the above text to modify the response to help untitled
-
-% Last Modified by GUIDE v2.5 15-Dec-2019 22:25:24
-
-% Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
@@ -46,13 +20,6 @@ end
 
 % --- Executes just before untitled is made visible.
 function untitled_OpeningFcn(hObject, eventdata, handles, varargin)
-% This function has no output args, see OutputFcn.
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to untitled (see VARARGIN)
-
-% Choose default command line output for untitled
 handles.output = hObject;
 
 % Update handles structure
@@ -64,33 +31,21 @@ guidata(hObject, handles);
 end
 % --- Outputs from this function are returned to the command line.
 function varargout = untitled_OutputFcn(hObject, eventdata, handles) 
-% varargout  cell array for returning output args (see VARARGOUT);
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Get default command line output from handles structure
 varargout{1} = handles.output;
-set(handles.pushbutton1,'Visible','Off')
 set(handles.pushbutton3,'Visible','Off')
 set(handles.pushbutton4,'Visible','Off')
-set(handles.edit1,'Visible','Off')
-set(handles.text3,'Visible','Off')
-set(handles.edit2,'Visible','Off')
-set(handles.text4,'Visible','Off')
-set(handles.text5,'Visible','Off')
-set(handles.uitable1, 'Visible', 'Off');
+set(handles.uitable1, 'Data',[]);
+set(handles.edit2,'enable','Off')
+
 end
 % --- Executes on button press in pushbutton1.
 
 function pushbutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 global order;
 global x;
 global rownames;
 global initialMatrix;
+global displayMatrix;
 global finish;
 finish =false;
 if(hasCrossEdges(initialMatrix)==false && hasLegalMove(initialMatrix))
@@ -103,22 +58,38 @@ if(hasCrossEdges(initialMatrix)==false && hasLegalMove(initialMatrix))
     if(L==2)
         uppercase = upper(move);
         Upper= char(uppercase);
-        a=double(Upper(1)-64);
-        b=double(Upper(2)-64);
-        if validmove(a,b,initialMatrix)
-            initialMatrix =getMove(a,b,initialMatrix);
-            finish =true;
-            rownames={}
-            for r = 1:size(initialMatrix)
-            rownames(r)={char(64+r)}
-            end  
-            set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames);
+        if(isnan(str2double(Upper(1))) && isnan(str2double(Upper(2))))
+            a=double(Upper(1)-64);
+            b=double(Upper(2)-64);
+            if validmove(a,b,initialMatrix)
+                initialMatrix =getMove(a,b,initialMatrix);
+                finish =true;
+                rownames={}
+
+                displayMatrix = reshape(strtrim(cellstr(num2str(initialMatrix(:)))), size(initialMatrix));
+
+                  for r = 1:size(initialMatrix)
+                      disp("---------")
+                      disp(sum(initialMatrix(r,:)))
+                       if(sum(initialMatrix(r,:))==3)
+                         displayMatrix(r,:) = cellfun(@(x) ['<html><table border=0 width=400 bgcolor=#FF0000><TR><TD>' x '</TD></TR> </table></html>'],displayMatrix(r,:), 'UniformOutput', false)           
+                       end 
+                     rownames(r)={char(64+r)}
+                  end
+                set(handles.uitable1, 'Data', displayMatrix,'RowName',rownames,'ColumnName',rownames);
+                set(handles.edit2,'String','')
+
+            else
+                f = msgbox('Invalid Move', 'Error','error');
+                set(handles.edit1, 'String', "");    
+            end
+            if(hasLegalMove(initialMatrix)==false)
+                myicon = imread('winner.jpg');
+                f = msgbox('You are the winner','Winner','custom',myicon);
+            end
         else
             f = msgbox('Invalid Move', 'Error','error');
-            set(handles.edit1, 'String', "");    
-        end
-        if(hasLegalMove(initialMatrix)==false)
-            f = msgbox('You are the winner','Winner');
+            set(handles.edit1, 'String', "");
         end
     end
 end
@@ -127,19 +98,28 @@ if(hasLegalMove(initialMatrix) && hasCrossEdges(initialMatrix)==false && finish 
               computerMove=nextMove(initialMatrix);
               initialMatrix =getMove(computerMove(1),computerMove(2),initialMatrix);
                 rownames={}
-                for a = 1:size(initialMatrix)
-                rownames(a)={char(64+a)}
-                set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames);
-                end
+            displayMatrix = reshape(strtrim(cellstr(num2str(initialMatrix(:)))), size(initialMatrix));
+
+              for r = 1:size(initialMatrix)
+                  disp("---------")
+                  disp(sum(initialMatrix(r,:)))
+                   if(sum(initialMatrix(r,:))==3)
+                     displayMatrix(r,:) = cellfun(@(x) ['<html><table border=0 width=400 bgcolor=#FF0000><TR><TD>' x '</TD></TR> </table></html>'],displayMatrix(r,:), 'UniformOutput', false)           
+                   end 
+                 rownames(r)={char(64+r)}
+              end
+              set(handles.uitable1, 'Data', displayMatrix,'RowName',rownames,'ColumnName',rownames);
+
                 set(handles.edit2, 'String',strcat(char(computerMove(1)+64),char(computerMove(2)+64)));
                 set(handles.text3,'Visible','On')
                 set(handles.edit2,'Visible','On')
                 if(hasLegalMove(initialMatrix)==false)
-                f = msgbox('Game Over;You Lost','Oops');
+                 myicon1 = imread('lose.jpg');
+                f = msgbox('Game Over;You Lost','Oops','custom',myicon1);
                 end
                 
 end
-
+    set(handles.edit1,'String','')
 
 end
 
@@ -147,22 +127,10 @@ end
 
 
 function edit1_Callback(hObject, eventdata, handles)
-% hObject    handle to edit1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit1 as text
-%        str2double(get(hObject,'String')) returns contents of edit1 as a double
 end
 
 % --- Executes during object creation, after setting all properties.
 function edit1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -170,120 +138,84 @@ end
 
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
+    global x;
+    Y = get(handles.edit4,'String');
+    x = Y;
+    if(strlength(Y)~=0 && ~ isnan(str2double(x)))
+        if(str2double(x)>1)
+        h = questdlg('Do you want to play first','Success');
+        set(handles.edit4, 'enable', 'off')
+        global initialMatrix;
+        global rownames;
+        initialMatrix = zeros(str2double(x));
 
-% hObject    handle to pushbutton2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+        if strcmp(h,'Yes')
+            set(handles.pushbutton1,'Visible','On')
+            set(handles.edit1,'Visible','On')
+            set(handles.text4,'Visible','On')
+            set(handles.pushbutton2,'enable','Off')
+            set(handles.pushbutton3,'Visible','On')
+            set(handles.pushbutton4,'Visible','On')
+            rownames={}
+            for r = 1:str2double(x)
+                rownames(r)={char(64+r)}
+                if(sum(initialMatrix(:,r))>=3)
+                    initialMatrix(:,r) = cellfun(@(x) ['<html><table border=0 width=400 bgcolor=#FF0000><TR><TD>' x '</TD></TR> </table></html>'],initialMatrix(:,r), 'UniformOutput', false);            
+                end 
+            end
 
-% answer = questdlg('Would you like a dessert?', ...
-% 	'Dessert Menu', ...
-% 	'Ice cream','Cake','No thank you','No thank you');
-% % Handle response
-% switch answer
-%     case 'Ice cream'
-%         disp([answer ' coming right up.'])
-%         dessert = 1;% answer = questdlg('Would you like a dessert?', ...
-% 	'Dessert Menu', ...
-% 	'Ice cream','Cake','No thank you','No thank you');
-% % Handle response
-% switch answer
-%     case 'Ice cream'
-%         disp([answer ' coming right up.'])
-%         dessert = 1;
-%     case 'Cake'
-%         disp([answer ' coming right up.']set(handles.pushbutton1,'Visible','Off')
+            set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames,'ColumnName',rownames);
+            set(handles.uitable1, 'Visible', 'On');
+        elseif(strcmp(h,'No'))
+            if(hasLegalMove(initialMatrix) && hasCrossEdges(initialMatrix)==false)
+                      computerMove=nextMove(initialMatrix);
+                      initialMatrix =getMove(computerMove(1),computerMove(2),initialMatrix);
+                        rownames={}
+                        for a = 1:size(initialMatrix)
+                        rownames(a)={char(64+a)}
+                        set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames,'ColumnName',rownames);
+                        end
+                        set(handles.edit2, 'String',strcat(char(computerMove(1)+64),char(computerMove(2)+64)));
+                        set(handles.text3,'Visible','On')
+                        set(handles.edit2,'Visible','On')
 
-%         dessert = 2;
-%     case 'No thank you'
-%         disp('I''ll bring you your check.')
-%         dessert = 0;
-% end
+            end
+            set(handles.pushbutton1,'Visible','On')
+            set(handles.edit1,'Visible','On')
+            set(handles.text4,'Visible','On')
+            set(handles.pushbutton2,'enable','Off')
+            set(handles.pushbutton3,'Visible','On')
+            set(handles.pushbutton4,'Visible','On')
+            rownames={}
+            for r = 1:size(initialMatrix)
+                rownames(r)={char(64+r)}
+                if(sum(initialMatrix(:,r))>=3)
+                    initialMatrix(:,r) = cellfun(@(x) ['<html><table border=0 width=400 bgcolor=#FF0000><TR><TD>' x '</TD></TR> </table></html>'],initialMatrix(:,r), 'UniformOutput', false);            
+                end 
+            end
 
-%     case 'Cake'
-%         disp([answer ' coming right up.'])
-%         dessert = 2;
-%     case 'No thank you'
-%         disp('I''ll bring you your check.')
-%         dessert = 0;
-% end
+            set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames,'ColumnName',rownames);
+            set(handles.uitable1, 'Visible', 'On');
 
 
-global x;
-x = inputdlg({'Enter the number of Initial Points?',},...
-              'number of Initial Points', [1 50]);
-h = questdlg('Do you want to play first','Success');
-global initialMatrix;
-global rownames;
-initialMatrix = zeros(str2double(x));
-
-if strcmp(h,'Yes')
-    set(handles.pushbutton1,'Background','y')
-    set(handles.pushbutton1,'Visible','On')
-    set(handles.edit1,'Visible','On')
-    set(handles.text4,'Visible','On')
-    set(handles.text5,'Visible','On')
-    set(handles.pushbutton2,'Visible','Off')
-set(handles.pushbutton3,'Visible','On')
-set(handles.pushbutton4,'Visible','On')
-    rownames={}
-    for r = 1:str2double(x)
-        rownames(r)={char(64+r)}
+        end
+    elseif(isnan(str2double(x)) && strlength(x)~=0)
+        g = msgbox('Please Enter Numerical Value', 'Error','error');
+    else
+     f = msgbox('Please Enter a number greater than one', 'Error','error');
     end
-    
-    set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames);
-    set(handles.uitable1, 'Visible', 'On');
-elseif(strcmp(h,'No'))
-    if(hasLegalMove(initialMatrix) && hasCrossEdges(initialMatrix)==false)
-              computerMove=nextMove(initialMatrix);
-              initialMatrix =getMove(computerMove(1),computerMove(2),initialMatrix);
-                rownames={}
-                for a = 1:size(initialMatrix)
-                rownames(a)={char(64+a)}
-                set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames);
-                end
-                set(handles.edit2, 'String',strcat(char(computerMove(1)+64),char(computerMove(2)+64)));
-                set(handles.text3,'Visible','On')
-                set(handles.edit2,'Visible','On')
-                
+    else
+      f = msgbox('Please Enter the number of initial points', 'Error','error');
     end
-    set(handles.pushbutton1,'Background','y')
-    set(handles.pushbutton1,'Visible','On')
-    set(handles.edit1,'Visible','On')
-    set(handles.text4,'Visible','On')
-    set(handles.text5,'Visible','On')
-     set(handles.pushbutton2,'Visible','Off')
-set(handles.pushbutton3,'Visible','On')
-set(handles.pushbutton4,'Visible','On')
-    rownames={}
-    for r = 1:size(initialMatrix)
-    rownames(r)={char(64+r)}
-    end 
-    
-    set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames);
-    set(handles.uitable1, 'Visible', 'On');
-    
-
-end
-
 end
 
 function edit2_Callback(hObject, eventdata, handles)
-% hObject    handle to edit2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit2 as text
-%        str2double(get(hObject,'String')) returns contents of edit2 as a double
 end
 
 % --- Executes during object creation, after setting all properties.
 function edit2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -291,22 +223,12 @@ end
 
 
 function edit3_Callback(hObject, eventdata, handles)
-% hObject    handle to edit3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit3 as text
-%        str2double(get(hObject,'String')) returns contents of edit3 as a double
 end
 
 % --- Executes during object creation, after setting all properties.
 function edit3_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -432,29 +354,45 @@ end
 
 % --- Executes on button press in pushbutton3.
 function pushbutton3_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 exit;
 end
 
 % --- Executes on button press in pushbutton4.
 function pushbutton4_Callback(hObject, eventdata, handles)
 global initialMatrix;
-% hObject    handle to pushbutton4 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 answer = questdlg('Are you sure you want to reset the game?', ...
 	'Rest game', ...
 	'Yes' , 'No','No');
 
 if strcmp(answer,'Yes')
     set(handles.pushbutton3,'Visible','Off')
-    set(handles.uitable1, 'Data', [],'RowName',{});
+    set(handles.pushbutton2,'Visible','On')
+    set(handles.uitable1,'Data', [],'RowName',{},'ColumnName',{});
     initialMatrix=[];
      set(handles.edit2, 'String', "");
       set(handles.edit1, 'String', "");
-    set(handles.pushbutton2,'Visible','On')
+    set(handles.pushbutton2,'enable','On')
+set(handles.edit4,'enable','On')
+set(handles.edit4,'String','')
+end
+end
+
+
+
+function edit4_Callback(hObject, eventdata, handles)
 
 end
+
+% --- Executes during object creation, after setting all properties.
+function edit4_CreateFcn(hObject, eventdata, handles)
+
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+% --- Executes on button press in pushbutton5.
+function pushbutton5_Callback(hObject, eventdata, handles)
+
 end
