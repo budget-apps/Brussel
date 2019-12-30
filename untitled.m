@@ -83,15 +83,18 @@ if(hasCrossEdges(initialMatrix)==false && hasLegalMove(initialMatrix))
                 f = msgbox('Invalid Move', 'Error','error');
                 set(handles.edit1, 'String', "");    
             end
+          drawGraph(handles)
             if(hasLegalMove(initialMatrix)==false)
                 myicon = imread('winner.jpg');
                 f = msgbox('You are the winner','Winner','custom',myicon);
             end
+            
         else
             f = msgbox('Invalid Move', 'Error','error');
             set(handles.edit1, 'String', "");
         end
     end
+    
 end
 
 if(hasLegalMove(initialMatrix) && hasCrossEdges(initialMatrix)==false && finish ==true)
@@ -113,14 +116,15 @@ if(hasLegalMove(initialMatrix) && hasCrossEdges(initialMatrix)==false && finish 
                 set(handles.edit2, 'String',strcat(char(computerMove(1)+64),char(computerMove(2)+64)));
                 set(handles.text3,'Visible','On')
                 set(handles.edit2,'Visible','On')
+                drawGraph(handles)
                 if(hasLegalMove(initialMatrix)==false)
                  myicon1 = imread('lose.jpg');
                 f = msgbox('Game Over;You Lost','Oops','custom',myicon1);
                 end
-                
+              
 end
     set(handles.edit1,'String','')
-
+   
 end
 
 
@@ -138,6 +142,8 @@ end
 
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
+
+
     global x;
     Y = get(handles.edit4,'String');
     x = Y;
@@ -163,24 +169,12 @@ function pushbutton2_Callback(hObject, eventdata, handles)
                     initialMatrix(:,r) = cellfun(@(x) ['<html><table border=0 width=400 bgcolor=#FF0000><TR><TD>' x '</TD></TR> </table></html>'],initialMatrix(:,r), 'UniformOutput', false);            
                 end 
             end
-
+            drawGraph(handles)
             set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames,'ColumnName',rownames);
             set(handles.uitable1, 'Visible', 'On');
-        elseif(strcmp(h,'No'))
-            if(hasLegalMove(initialMatrix) && hasCrossEdges(initialMatrix)==false)
-                      computerMove=nextMove(initialMatrix);
-                      initialMatrix =getMove(computerMove(1),computerMove(2),initialMatrix);
-                        rownames={}
-                        for a = 1:size(initialMatrix)
-                        rownames(a)={char(64+a)}
-                        set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames,'ColumnName',rownames);
-                        end
-                        set(handles.edit2, 'String',strcat(char(computerMove(1)+64),char(computerMove(2)+64)));
-                        set(handles.text3,'Visible','On')
-                        set(handles.edit2,'Visible','On')
 
-            end
-            set(handles.pushbutton1,'Visible','On')
+        elseif(strcmp(h,'No'))
+             set(handles.pushbutton1,'Visible','On')
             set(handles.edit1,'Visible','On')
             set(handles.text4,'Visible','On')
             set(handles.pushbutton2,'enable','Off')
@@ -196,8 +190,21 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 
             set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames,'ColumnName',rownames);
             set(handles.uitable1, 'Visible', 'On');
-
-
+            if(hasLegalMove(initialMatrix) && hasCrossEdges(initialMatrix)==false)
+                      computerMove=nextMove(initialMatrix);
+                      initialMatrix =getMove(computerMove(1),computerMove(2),initialMatrix);
+                        rownames={}
+                        for a = 1:size(initialMatrix)
+                        rownames(a)={char(64+a)}
+                        set(handles.uitable1, 'Data', initialMatrix,'RowName',rownames,'ColumnName',rownames);
+                        end
+                        set(handles.edit2, 'String',strcat(char(computerMove(1)+64),char(computerMove(2)+64)));
+                        set(handles.text3,'Visible','On')
+                        set(handles.edit2,'Visible','On')
+                        drawGraph(handles)
+            end
+           
+            drawGraph(handles)
         end
     elseif(isnan(str2double(x)) && strlength(x)~=0)
         g = msgbox('Please Enter Numerical Value', 'Error','error');
@@ -288,7 +295,6 @@ if(row1==row2)
 %           change the values in matrix
           getMoveMatrix(row1,lengthofMetrix+1)=2;
           getMoveMatrix(lengthofMetrix+1,row1)=2;
-          
       end
 else
 %       2nd condition draw edge vetex to onother vertex
@@ -306,7 +312,6 @@ else
           getMoveMatrix(lengthofMetrix+1,row1)=1;
           getMoveMatrix(row2,lengthofMetrix+1)=1;
           getMoveMatrix(lengthofMetrix+1,row2)=1;
-          
       end
 end
 end
@@ -325,6 +330,8 @@ function hasCross=hasCrossEdges(matrix)
 end
 
 function nextcomputerMove=nextMove(Matrix)
+
+
   numberofRows=size(Matrix,1);
   nextcomputerMove=[];
   possibleCount=0;
@@ -342,7 +349,48 @@ function nextcomputerMove=nextMove(Matrix)
     if(possibleCount>=2)
       return;
     end
-   end
+  end
+end
+
+function drawGraph(handles)
+ax = gca;
+ax.YLim = [-1 inf];
+     global initialMatrix;
+     global rownames;
+     test_planar_graph(sparse(initialMatrix))
+    X = chrobak_payne_straight_line_drawing(sparse(initialMatrix))   
+    gplot(sparse(initialMatrix),X,'-*'); % it looks a little different!
+    text(X(:,1),X(:,2),rownames,'FontSize', 18,'VerticalAlignment','bottom',...
+        'HorizontalAlignment','right','Color', 'r')
+[row,col]= find(initialMatrix==2)
+hold on;
+for w = 1:length(row)
+    row(w)
+    x1 = X(row(w),1);
+    x2 = X(col(w),1);
+    y1 = X(row(w),2);
+    y2 = X(col(w),2);
+%     line([x1,x2],[y1,y2],'Color','r','LineStyle','-');
+    DoubleX = [x1 x2];
+DoubleY = [y1 y2];
+% intermediate point (you have to choose your own)
+Xi = mean(DoubleX) - 0.2;
+Yi = mean(DoubleY) - 0.2;
+
+Xa = [DoubleX(1) Xi DoubleX(2)];
+Ya = [DoubleY(1) Yi DoubleY(2)];
+
+t  = 1:numel(Xa);
+ts = linspace(min(t),max(t),numel(Xa)*10); % has to be a fine grid
+xx = spline(t,Xa,ts);
+yy = spline(t,Ya,ts);
+
+plot(xx,yy,'b');
+hold on;
+end
+ hold off; % curve
+  set(handles.axes9,'XColor','w','YColor','w')
+
 end
 
 function desicion(desition,initialMatrix)
@@ -374,6 +422,7 @@ if strcmp(answer,'Yes')
     set(handles.pushbutton2,'enable','On')
 set(handles.edit4,'enable','On')
 set(handles.edit4,'String','')
+cla
 end
 end
 
